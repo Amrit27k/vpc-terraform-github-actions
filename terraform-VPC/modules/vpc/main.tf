@@ -20,9 +20,31 @@ resource "aws_subnet" "subnets" {
   }
 }
 # Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.my_vpc.id
 
+  tags = {
+    Name = "MyInternetGateway"
+  }
+}
 
 # Route table
+resource "aws_route_table" "rt" {
+  vpc_id = aws_vpc.my_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0" #public id
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    "Name" = "MyRouteTable"
+  }
+}
 
 # Route Table Associations
-
+resource "aws_route_table_association" "rta" {
+  count = length(var.subnet_cidr)
+  subnet_id      = aws_subnet.subnets[count.index].id
+  route_table_id = aws_route_table.rt.id
+}
